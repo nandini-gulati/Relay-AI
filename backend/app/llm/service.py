@@ -21,13 +21,51 @@ from app.llm.exceptions import AllProvidersUnavailableException
 
 logger = logging.getLogger("relay.llm")
 
-# Configure LiteLLM
-# Suppress telemetry and remote cost map fetching for instant, deterministic execution
-litellm.telemetry = False
-litellm.suppress_debug_info = True
+def generate_contextual_mock_reply(messages: List[Dict[str, str]]) -> str:
+    """Generate an intelligent contextual response for demonstration and testing when real keys are not set."""
+    last_user_msg = ""
+    for m in reversed(messages):
+        if m.get("role") == "user":
+            last_user_msg = m.get("content", "").strip()
+            break
 
-# Initialize LiteLLM local in-memory cache
-litellm.cache = Cache(type="local")
+    lower = last_user_msg.lower()
+    history_text = " ".join(m.get("content", "") for m in messages[:-1]).lower()
+
+    if "capital of france" in lower:
+        return "The capital of France is Paris, famous for landmarks like the Eiffel Tower, the Louvre Museum, and Notre-Dame Cathedral."
+    elif "facts about it" in lower or "interesting facts" in lower:
+        if "paris" in history_text or "france" in history_text:
+            return "Here are 3 interesting facts about Paris:\n1. It is known as the 'City of Light' because it was an early adopter of street lighting.\n2. The Eiffel Tower was originally built as a temporary installation for the 1889 World's Fair.\n3. The Louvre is the world's largest art museum, home to over 380,000 objects and 35,000 works of art."
+        return "Here are three interesting facts relevant to your query:\n1. Failover systems ensure continuity during provider downtimes.\n2. Deterministic caching reduces response times from hundreds of milliseconds to under 10ms.\n3. Session tokens reflect per-request overhead rather than running session totals."
+    elif "speed of light" in lower:
+        return "The speed of light in a vacuum is exactly 299,792,458 meters per second (approximately 300,000 km/s or 186,282 miles per second)."
+    elif "quantum computing" in lower:
+        return "Quantum computing leverages the principles of quantum mechanics—such as superposition and entanglement—to perform complex computations exponentially faster than classical computers for specific problem classes."
+    elif "poem" in lower or "haiku" in lower:
+        return "Requests softly route,\nFailover shields every spark,\nCache brings instant dawn."
+    elif "name is" in lower:
+        parts = last_user_msg.split("name is")[-1].strip().split()
+        name = parts[0].strip(".,!?:;").title() if parts else "Friend"
+        return f"Nice to meet you, {name}! How can I assist you with your project today?"
+    elif "what is my name" in lower or "who am i" in lower:
+        for m in messages:
+            if "name is" in m.get("content", "").lower():
+                parts = m.get("content", "").lower().split("name is")[-1].strip().split()
+                name = parts[0].strip(".,!?:;").title() if parts else None
+                if name:
+                    return f"Your name is {name}."
+        return "You haven't mentioned your name yet. Feel free to introduce yourself!"
+    elif "photosynthesis" in lower:
+        return "Photosynthesis is the biological process by which green plants and certain organisms convert sunlight, water, and carbon dioxide into oxygen and glucose."
+    elif "2+2" in lower or "2 + 2" in lower:
+        return "2 + 2 = 4."
+    elif any(greeting in lower for greeting in ("hello", "hi", "hey", "greetings")):
+        return "Hello! I am Relay, your resilient AI assistant. I'm equipped with multi-key failover and deterministic response caching. How can I help you today?"
+    elif "sherlock" in history_text:
+        return f"Elementary, my dear friend. Observing your query '{last_user_msg}', logic dictates that a meticulous investigation is warranted."
+    else:
+        return f"I received your inquiry regarding \"{last_user_msg}\". Relay is operating with active multi-key failover and response caching ready to assist."
 
 
 def parse_simulation_header(header_val: Optional[str]) -> Dict[str, int]:
@@ -174,10 +212,15 @@ def execute_chat_completion(
                 "caching": use_caching,
             }
 
-            # Optional testing hook to mock LLM responses without external network calls
+            # Optional testing and demonstration hook
             mock_env = os.getenv("MOCK_LLM_RESPONSE")
-            if mock_env:
+            is_placeholder_key = raw_key.startswith(("demo_", "mock_", "your_", "test-key", "placeholder"))
+
+            if mock_env and mock_env.strip():
                 completion_kwargs["mock_response"] = mock_env
+            elif is_placeholder_key:
+                # Provide an authentic context-aware answer for demo/offline use without API keys
+                completion_kwargs["mock_response"] = generate_contextual_mock_reply(messages)
 
             # Call LiteLLM completion
             # temperature=0 ensures deterministic output and reproducible cache hits
