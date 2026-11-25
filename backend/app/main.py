@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.auth_routes import auth_router
 from app.config import settings
 from app.db import init_db
 from app.routes import router
@@ -79,4 +80,5 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 
 # Include endpoints
+app.include_router(auth_router)
 app.include_router(router)

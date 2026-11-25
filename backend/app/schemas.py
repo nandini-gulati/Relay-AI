@@ -71,5 +71,16 @@ class SessionHistoryResponse(BaseModel):
     messages: List[MessageItem]
 
 
+class SessionSummary(BaseModel):
+    session_id: str
+    title: str
+    updated_at: str
+    message_count: int
+
+
+class SessionListResponse(BaseModel):
+    sessions: List[SessionSummary]
+
+
 class ErrorDetail(BaseModel):
     detail: Any

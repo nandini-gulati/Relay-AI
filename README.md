@@ -245,16 +245,22 @@ curl -i http://localhost:8000/sessions/s-demo-1/messages
 
 ## 6. Bonus features
 
-1. **Human-Crafted Artisanal UI**:
-   - Thoughtfully styled with high aesthetic standards (neutral warmth, clean typography, soft pill tags for `LIVE_INFERENCE` and `LLM_CACHE`, and monospace metric indicators).
-   - Instant conversation starter chips for zero-friction interaction.
-   - Session status chip with truncation and UUID inspector.
-2. **Interactive System Prompt Drawer**:
-   - Collapsible settings panel allowing dynamic per-session system prompt configuration without cluttering the chat view.
-3. **Comprehensive Automated Test Suite (`pytest`)**:
-   - 14 automated tests verifying edge cases: 422 validations (empty string, whitespace-only, >4000 chars, malformed JSON, missing session ID), 404 session lookup, cache hit verification, key failover, and isolation across concurrent sessions.
-4. **Resilient Offline Fallback & Mock Hooks**:
-   - Embedded `MOCK_LLM_RESPONSE` configuration and offline cost-map suppression (`LITELLM_LOCAL_MODEL_COST_MAP=True`) enabling instant CI/CD test runs and local sandbox development without burning live API quotas.
-5. **Production Docker Multi-Stage Builds**:
-   - Non-root user in runtime image for container security.
-   - Dynamic `$PORT` binding for instant deployment on cloud PaaS providers like Render.
+1. **Next-Gen Artisanal UI with Theme Support**:
+   - Modern developer-focused design with seamless Dark Mode and Light Mode toggles.
+   - Distinctive neon emerald badges for `LLM_CACHE` and electric violet badges for `LIVE_INFERENCE`.
+   - Rich Markdown formatting with syntax-highlighted code blocks and 1-click copy buttons.
+   - Monospace telemetry chips displaying exact server latency, per-request input/output tokens, and key identifiers.
+2. **Interactive Failover Simulation Inspector**:
+   - Built-in UI drawer for testing `X-Simulate-Failure` on demand.
+   - Quick presets for `key_1=429` (rate limit failover), `key_1=500` (server error failover), and `*=429` (clean 503 provider exhaustion), plus custom input.
+   - Visual active simulation banner keeping evaluators informed during demo recordings.
+3. **Live SQLite History Inspector**:
+   - Slide-over drawer that queries `GET /sessions/{session_id}/messages` directly from the running backend.
+   - Visually demonstrates SQLite persistence and multi-turn state preservation on demand.
+4. **Interactive System Prompt Customizer**:
+   - Collapsible panel with rapid persona presets ("Senior Architect", "Code Mentor", "Ultra Concise") and real-time character counting.
+5. **Comprehensive Automated Test Suite (`pytest`)**:
+   - 14 automated tests covering edge cases: 422 validations (empty string, whitespace-only, >4000 chars, malformed JSON, missing session ID), 404 session lookup, cache hit verification, key failover, and multi-turn conversation isolation.
+6. **Production Multi-Stage Docker Builds & Portable Makefile**:
+   - Multi-stage Dockerfiles with lightweight runtime images and named volume mounts.
+   - `make up`, `make down`, `make logs`, and `make test`.

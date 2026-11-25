@@ -15,7 +15,7 @@ logs:
 # Run backend unit and integration test suite
 test:
 	@if [ -d "backend/.venv" ]; then \
-		backend/.venv/bin/pytest backend/tests/test_api.py -v; \
+		backend/.venv/bin/python3 -m pytest backend/tests/test_api.py -v; \
 	else \
 		python3 -m pytest backend/tests/test_api.py -v; \
 	fi

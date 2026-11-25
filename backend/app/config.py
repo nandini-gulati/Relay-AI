@@ -33,7 +33,7 @@ class Settings:
         # Default system prompt
         self.DEFAULT_SYSTEM_PROMPT: str = os.getenv(
             "DEFAULT_SYSTEM_PROMPT",
-            "You are Relay, an intelligent, helpful, and transparent AI assistant.",
+            "You are Relay, an intelligent, helpful, and concise AI assistant. Never use emojis in your responses.",
         ).strip()
 
         # Key pool: parsed into ordered list of tuples: [("key_1", "raw_key_secret"), ...]

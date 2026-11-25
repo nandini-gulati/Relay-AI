@@ -3,14 +3,17 @@
 import time
 from typing import Optional
 
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 
+from app.auth import get_optional_user
 from app.config import settings
 from app.db import (
     check_db_reachable,
+    delete_session,
     get_session_history_for_llm,
     get_session_messages_endpoint,
     insert_chat_turn,
+    list_sessions,
     upsert_session,
 )
 from app.llm.exceptions import AllProvidersUnavailableException
@@ -21,6 +24,7 @@ from app.schemas import (
     ChatResponse,
     HealthResponse,
     SessionHistoryResponse,
+    SessionListResponse,
 )
 
 router = APIRouter()
@@ -50,6 +54,7 @@ def health_check():
 def chat_endpoint(
     req: ChatRequest,
     x_simulate_failure: Optional[str] = Header(None, alias="X-Simulate-Failure"),
+    current_user=Depends(get_optional_user),
 ):
     """Main chat completion endpoint.
 
@@ -60,9 +65,16 @@ def chat_endpoint(
     - If failure occurs, records nothing to session history.
     """
     start_time = time.perf_counter()
+    user_id = current_user["uid"] if current_user else None
 
-    # 1. Resolve and persist system prompt for session
-    system_prompt = upsert_session(req.session_id, req.system_prompt)
+    # 1. Resolve and persist system prompt for session (scoped to user)
+    try:
+        system_prompt = upsert_session(req.session_id, req.system_prompt, user_id=user_id)
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have access to this session",
+        )
 
     # 2. Retrieve existing session history
     history = get_session_history_for_llm(req.session_id)
@@ -107,13 +119,17 @@ def chat_endpoint(
 
 
 @router.get("/sessions/{session_id}/messages", response_model=SessionHistoryResponse)
-def get_session_messages(session_id: str):
+def get_session_messages(
+    session_id: str,
+    current_user=Depends(get_optional_user),
+):
     """Retrieve message history for a specific session.
 
     Returns oldest first, excluding the system prompt.
-    Returns 404 detail 'session not found' if the session has never been created.
+    Returns 404 detail 'session not found' if the session does not exist or belongs to another user.
     """
-    messages = get_session_messages_endpoint(session_id)
+    user_id = current_user["uid"] if current_user else None
+    messages = get_session_messages_endpoint(session_id, user_id=user_id)
     if messages is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -124,3 +140,23 @@ def get_session_messages(session_id: str):
         session_id=session_id,
         messages=messages,
     )
+
+
+@router.get("/sessions", response_model=SessionListResponse)
+def get_sessions(current_user=Depends(get_optional_user)):
+    """List saved chat sessions belonging strictly to the authenticated user."""
+    user_id = current_user["uid"] if current_user else None
+    return SessionListResponse(sessions=list_sessions(user_id=user_id))
+
+
+@router.delete("/sessions/{session_id}")
+def remove_session(session_id: str, current_user=Depends(get_optional_user)):
+    """Delete a saved chat session belonging to the authenticated user."""
+    user_id = current_user["uid"] if current_user else None
+    deleted = delete_session(session_id, user_id=user_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="session not found",
+        )
+    return {"deleted": True, "session_id": session_id}
