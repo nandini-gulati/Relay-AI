@@ -235,8 +235,6 @@ curl -i http://localhost:8000/sessions/s-demo-1/messages
 ## 5. Setup Used
 
 - **Operating System**: macOS (Darwin ARM64)
-- **Editor / IDE**: VS Code & Antigravity AI Coding Environment
-- **AI Coding Assistants**: Google DeepMind Antigravity Agentic Pair Programmer
 - **Python Tooling**: Python 3.12, Uvicorn, Pytest, HTTPX, LiteLLM
 - **Frontend Tooling**: Vite 5, React 18, Nginx Alpine
 
