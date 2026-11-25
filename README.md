@@ -6,10 +6,9 @@ Relay is a production-grade, resilient full-stack AI chatbot built with FastAPI,
 
 ## 1. Live URLs
 
-- **Frontend Application**: `https://relay-chat.onrender.com` (or your deployed frontend URL on Vercel/Render)
-- **Backend API**: `https://relay-api.onrender.com` (or your deployed backend URL on Render/Railway)
-- **Health Endpoint**: `https://relay-api.onrender.com/health`
-- **Demo Video (2–3 minutes)**: `https://youtu.be/placeholder` (walkthrough covering key failover, response caching, and multi-turn state)
+- **Frontend Application**: `https://relay-ai-frontend-sr5b.onrender.com`
+- **Backend API**: `https://relay-ai-backend-0flq.onrender.com`
+- **Health Endpoint**: `https://relay-ai-backend-0flq.onrender.com/health`
 
 ---
 
